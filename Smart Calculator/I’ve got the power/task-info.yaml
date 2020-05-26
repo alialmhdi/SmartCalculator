@@ -1,0 +1,94 @@
+type: edu
+custom_name: stage7
+files:
+- name: tests.py
+  visible: false
+  text: |
+    from hstest.stage_test import *
+    from hstest.test_case import TestCase
+
+    CheckResult.correct = lambda: CheckResult(True, '')
+    CheckResult.wrong = lambda feedback: CheckResult(False, feedback)
+
+
+    class CalcTest(StageTest):
+        def generate(self) -> List[TestCase]:
+            cases = {"4 + 6 - 8\n\n\n2 - 3 - 4\n\n8 + 7 - 4\n1 +++ 2 * 3 -- 4\n/exit": "2\n-5\n11\n11\nBye!",
+                     "/command\n/exit": "Unknown command\nBye!",
+                     "3 + 8 * ((4 + 3) * 2 + 1) - 6 / (2 + 1)\n/exit": "121\nBye!",
+                     "8 * 3 + 12 * (4 - 2)\n4 * (2 + 3\n4 + 3)\n/exit": "48\nInvalid expression\nInvalid expression\nBye!",
+                     "a = 4\nb = 5\nc = 6\na*2+b*3+c*(2+3)\n/exit": "53\nBye!",
+                     "a = 1\na = 2\na = 3\na\n/exit": "3\nBye!"}
+            return [TestCase(stdin=case,
+                             attach=cases[case])
+                    for case in cases]
+
+        def check(self, reply: str, attach) -> CheckResult:
+            return CheckResult(reply.strip() == attach.strip(), "")
+
+
+    if __name__ == '__main__':
+        CalcTest("calculator.calculator").run_tests()
+  learner_created: false
+- name: calculator/calculator.py
+  visible: true
+  text: |-
+    variable_dict = {}
+
+
+    def declare_variable(i):
+        variable_list = i.replace(' ', '').split('=')
+        assert variable_list[0].isalpha()
+        if len(variable_list) == 2:
+            if variable_list[0].isalpha():
+                if variable_list[1] in variable_dict:
+                    variable_dict[variable_list[0]] = variable_dict[variable_list[1]]
+                elif int(variable_list[1]):
+                    variable_dict[variable_list[0]] = variable_list[1]
+                return variable_dict
+        elif len(variable_list) > 2 or variable_list[1] not in variable_dict:
+            print('Invalid assignment')
+
+
+    def calculator(i):
+        variable_list = i.split()
+        cal = []
+        for x in variable_list:
+            if x in variable_dict:
+                cal.append(variable_dict[x])
+            else:
+                cal.append(str(x))
+        return eval(''.join(cal))
+
+
+    while True:
+        inp = input()
+        num_list = [int(i) for i in inp if i.isdigit()]
+        try:
+            if inp == '':
+                continue
+            elif inp[0] == '/':
+                command = inp.replace('/', '')
+                if command == 'exit':
+                    break
+                elif command == 'help':
+                    print('The program calculates the sum of numbers')
+                else:
+                    print('Unknown command')
+            elif '=' in inp:
+                declare_variable(inp)
+            else:
+                print(calculator(inp))
+        except AssertionError:
+            print('Invalid identifier')
+        except AttributeError:
+            print('Invalid identifier')
+        except ValueError:
+            print('Invalid assignment')
+        except NameError:
+            print('Unknown variable')
+    print('Bye!')
+  learner_created: true
+feedback_link: https://hyperskill.org/projects/74/stages/415/implement
+status: Solved
+record: 7
